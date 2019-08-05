@@ -54,8 +54,10 @@
         }
 
         window.addEventListener('hashchange', function() {
-          if (location.hash == "")
+          if (location.hash == "") {
             location.reload(); // E.g. when browsing back
+            return;
+          }
           loadFileInHash();
         }, false);
 
