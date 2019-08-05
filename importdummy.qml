@@ -8,6 +8,8 @@ import QtQuick.Layouts 1.3
 import QtQuick.Extras 1.4
 import QtQuick.VirtualKeyboard 2.2
 import QtQuick.VirtualKeyboard.Settings 2.2
+import Qt.labs.folderlistmodel 2.13
+import Qt.labs.settings 1.0
 
 // QtQuick.Timeline needs to e built from its repo. Will likely be included in Qt 5.14
 import QtQuick.Timeline 1.0
