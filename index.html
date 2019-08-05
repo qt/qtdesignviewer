@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <link rel="icon" href="qtdesignstudioviewer-16.png" sizes="16x16">
+    <link rel="icon" href="qtdesignstudioviewer-32.png" sizes="32x32">
+    <link rel="icon" href="qtdesignstudioviewer-48.png" sizes="48x48">
+    <title>Qml Projector</title>
+    <style>
+      html, body { padding: 0; overflow: hidden; margin: 0; height: 100%; }
+      canvas { border: 0px none; background-color: white; height: 100%; width: 100%; outline: 0px solid transparent; caret-color: transparent; cursor: default; }
+      #dropzone { border: 3px dashed; text-align: center; }
+      #dropzone > p { padding: 30px; }
+      #dropzone, #uploadform, #projectsmenu  { width: 70%; margin: auto; }
+      #projectsmenu { display: none; padding: 8px; }
+      #projectsmenulist { list-style-type: none; background-color: lightgray }
+      #projectsmenulist, #projectsmenulist > li { float: left; margin: 5px; padding: 3px;}
+    </style>
+  </head>
+  <body onload="init()">
+    <figure style="overflow: visible;" id="qtspinner">
+      <center style="line-height:150%">
+        <img src="qtdesignstudioviewer-256.png" srcset="qtdesignstudioviewer-256.png 1x, qtdesignstudioviewer-512.png 2x" width="256" height="256" style="display: block"/>
+        <div id="qtstatus"></div>
+        <noscript>JavaScript is disabled. Please enable JavaScript to use this application.</noscript>
+      </center>
+    </figure>
+    <div id="dropzone">
+      <p>... drag a Qml project that you have to this Drop Zone ...</p>
+    </div>
+    <form id="uploadform">
+      <label for="fileinput">... or select a Qml project that you have on your computer:</label>
+      <input id="fileinput" type="file" accept=".zip" />
+    </form>
+    <div id="projectsmenu">
+        ... or pick a project from here ...
+        <ul id="projectsmenulist">
+        </ul>
+      </div>
+   <canvas id="qtcanvas" oncontextmenu="event.preventDefault()" contenteditable="true"></canvas>
+
+    <script type='text/javascript'>
+        var contentArray;
+        var reader;
+        var uploadform = document.querySelector('#uploadform');
+        var fileinput = document.querySelector('#fileinput');
+        var dropzone = document.querySelector('#dropzone');
+        var projectsmenu = document.querySelector('#projectsmenu');
+
+        function loadFileInHash() {
+          var filename = location.hash.split('#')[1]
+          loadFromServer(filename);
+        }
+
+        window.addEventListener('hashchange', function() {
+          if (location.hash == "")
+            location.reload(); // E.g. when browsing back
+          loadFileInHash();
+        }, false);
+
+        function handleFileSelection(event) {
+          reader = new FileReader();
+          reader.onload = function() {
+              contentArray = new Uint8Array(reader.result);
+              uploadform.style.display = dropzone.style.display = projectsmenu.style.display = 'none';
+              loadProjector();
+          };
+          reader.readAsArrayBuffer(fileinput.files[0]);
+        }
+
+        function loadFromServer(fileName) {
+          var request = new XMLHttpRequest();
+          request.responseType = "arraybuffer";
+          request.onload = function () {
+            if (this.status == 404) {
+              alert(this.status + " " + this.statusText);
+              location.hash = "";
+              return;
+            }
+            contentArray = new Uint8Array(request.response);
+            uploadform.style.display = dropzone.style.display = projectsmenu.style.display = 'none';
+            loadProjector();
+          }
+          request.open("GET", "qmlprojects/" + fileName, true);
+          request.send(null);
+        }
+
+        function listExamples() {
+          var request = new XMLHttpRequest();
+          request.responseType = "json";
+          request.onload = function (oEvent) {
+            var json = request.response;
+            if (json.projects.length > 0) {
+              var projectsmenulist = document.querySelector('#projectsmenulist');
+              for (project in json.projects) {
+                var li = document.createElement('li');
+                var a = document.createElement('a');
+                var filename = json.projects[project].file;
+                a.setAttribute("href", '#' + filename);
+                a.innerHTML = filename;
+                li.appendChild(a);
+                projectsmenulist.appendChild(li);
+              }
+              projectsmenu.style.display = 'block';
+            }
+          }
+          request.open("GET", "qmlprojects/index.json", true);
+          request.send(null);
+        }
+
+        function init() {
+          if (location.hash == '')
+            listExamples();
+          else
+            loadFileInHash();
+
+          fileinput.onchange = handleFileSelection;
+          dropzone.ondragover = dropzone.ondragenter = function(event) {
+            event.preventDefault();
+          };
+          dropzone.ondrop = function(event) {
+            fileinput.files = event.dataTransfer.files;
+            handleFileSelection(event);
+            event.preventDefault();
+          };
+        }
+
+        function loadProjector() {
+          var spinner = document.querySelector('#qtspinner');
+          var canvas = document.querySelector('#qtcanvas');
+          var status = document.querySelector('#qtstatus')
+
+          var qtLoader = QtLoader({
+            canvasElements : [canvas],
+            showLoader: function(loaderStatus) {
+                spinner.style.display = 'block';
+                canvas.style.display = 'none';
+                status.innerHTML = loaderStatus + "...";
+            },
+            showError: function(errorText) {
+                status.innerHTML = errorText;
+                spinner.style.display = 'block';
+                canvas.style.display = 'none';
+            },
+            showExit: function() {
+                status.innerHTML = "Application exit";
+                if (qtLoader.exitCode !== undefined)
+                    status.innerHTML += " with code " + qtLoader.exitCode;
+                if (qtLoader.exitText !== undefined)
+                    status.innerHTML += " (" + qtLoader.exitText + ")";
+                spinner.style.display = 'block';
+                canvas.style.display = 'none';
+            },
+            showCanvas: function() {
+                spinner.style.display = 'none';
+                canvas.style.display = 'block';
+            },
+          });
+          qtLoader.loadEmscriptenModule("qmlprojector");
+        }
+    </script>
+    <script type="text/javascript" src="qtloader.js"></script>
+  </body>
+</html>
