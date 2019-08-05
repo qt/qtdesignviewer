@@ -151,6 +151,8 @@ int main(int argc, char *argv[])
         mainQmlFile = findFile(root, "main.qml");
     const QUrl mainQmlUrl = QUrl::fromUserInput(mainQmlFile);
 
+    qputenv("QT_QUICK_CONTROLS_CONF", QFileInfo(mainQmlFile).path().toUtf8() + "/qtquickcontrols2.conf");
+
     QQmlEngine engine;
     for (const QString &importPath : importPaths)
         engine.addImportPath(importPath);
