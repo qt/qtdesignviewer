@@ -16,27 +16,28 @@
 #ifdef Q_OS_WASM
 #include <emscripten.h>
 
-std::function<void(char *, size_t)> g_setFileDataCallback;
-extern "C" EMSCRIPTEN_KEEPALIVE void qt_callSetFileData(char *content, size_t contentSize)
+std::function<void(char *, size_t, char *)> g_setFileDataCallback;
+extern "C" EMSCRIPTEN_KEEPALIVE void qt_callSetFileData(char *content, size_t contentSize,
+                                                        char *fileName)
 {
     if (g_setFileDataCallback == nullptr)
         return;
 
-    g_setFileDataCallback(content, contentSize);
+    g_setFileDataCallback(content, contentSize, fileName);
     g_setFileDataCallback = nullptr;
 }
 
-QByteArray fetchProject()
+void fetchProject(QByteArray *data, QString *fileName)
 {
     // Call qt_callSetFileData to make sure the emscripten linker does not
     // optimize it away, which may happen if the function is called from JavaScript
     // only. Set g_setFileDataCallback to null to make it a no-op.
     ::g_setFileDataCallback = nullptr;
-    ::qt_callSetFileData(nullptr, 0);
+    ::qt_callSetFileData(nullptr, 0, nullptr);
 
-    QByteArray fileData;
-    auto setFileDataCallback = [&fileData](char *content, size_t contentSize){
-        fileData.setRawData(content, contentSize);
+    auto setFileDataCallback = [data, fileName](char *content, size_t contentSize, char *projectFilename){
+        *data->setRawData(content, contentSize);
+        *fileName = QString::fromUtf8(projectFilename);
     };
     g_setFileDataCallback = setFileDataCallback;
 
@@ -62,24 +63,22 @@ QByteArray fetchProject()
 
         // Call the C++ file data ready callback
         ccall("qt_callSetFileData", null,
-            ["number", "number"], [heapPointer, contentSize]);
+            ["number", "number", "string"], [heapPointer, contentSize, projectfileName]);
     });
-    return fileData;
 }
 #else // Q_OS_WASM
 
-QByteArray fetchProject()
+void fetchProject(QByteArray *data, QString *fileName)
 {
     if (QCoreApplication::arguments().count() < 2) {
         qWarning() << "Pass a package file name as argument";
-        return {};
+        return;
     }
 
-    QFile file(QCoreApplication::arguments().at(1));
+    *fileName = QCoreApplication::arguments().at(1);
+    QFile file(*fileName);
     if (file.open(QIODevice::ReadOnly))
-        return file.readAll();
-
-    return {};
+        *data = file.readAll();
 }
 #endif // Q_OS_WASM
 
@@ -131,6 +130,7 @@ int main(int argc, char *argv[])
     QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
     QGuiApplication app(argc, argv);
 
+    QString projectFileName;
 #ifdef Q_OS_WASM
     QString root = "/home/web_user/";
 #else // Q_OS_WASM
@@ -138,17 +138,21 @@ int main(int argc, char *argv[])
     const QString root = tempDir.path();
 #endif // Q_OS_WASM
     {
-        QByteArray projectData = fetchProject();
+        QByteArray projectData;
+        fetchProject(&projectData, &projectFileName);
         unpackProject(projectData, root);
     }
 
     QString mainQmlFile;
     QStringList importPaths;
     const QString qmlProjectFile = findFile(root, "*.qmlproject");
-    if (!qmlProjectFile.isEmpty())
+    if (!qmlProjectFile.isEmpty()) {
         parseQmlprojectFile(qmlProjectFile, &mainQmlFile, &importPaths);
-    else
+    } else {
         mainQmlFile = findFile(root, "main.qml");
+        if (mainQmlFile.isEmpty())
+            mainQmlFile = findFile(root, QFileInfo(projectFileName).baseName() + ".qml");
+    }
     const QUrl mainQmlUrl = QUrl::fromUserInput(mainQmlFile);
 
     const QString qtquickcontrols2File = findFile(root, "qtquickcontrols2.conf");

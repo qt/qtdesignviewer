@@ -43,6 +43,7 @@
 
     <script type='text/javascript'>
         var contentArray;
+        var projectfileName;
         var reader;
         var uploadform = document.querySelector('#uploadform');
         var fileinput = document.querySelector('#fileinput');
@@ -64,12 +65,14 @@
 
         function handleFileSelection(event) {
           reader = new FileReader();
+          var file = fileinput.files[0];
           reader.onload = function() {
               contentArray = new Uint8Array(reader.result);
               uploadform.style.display = dropzone.style.display = projectsmenu.style.display = 'none';
+              projectfileName = file.name;
               loadProjector();
           };
-          reader.readAsArrayBuffer(fileinput.files[0]);
+          reader.readAsArrayBuffer(file);
         }
 
         function loadFromServer(fileName) {
@@ -83,6 +86,7 @@
             }
             contentArray = new Uint8Array(request.response);
             uploadform.style.display = dropzone.style.display = projectsmenu.style.display = 'none';
+            projectfileName = fileName;
             loadProjector();
           }
           request.open("GET", "qmlprojects/" + fileName, true);
