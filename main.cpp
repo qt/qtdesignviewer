@@ -166,6 +166,11 @@ int main(int argc, char *argv[])
         if (mainQmlFile.isEmpty())
             mainQmlFile = findFile(root, QFileInfo(projectFileName).baseName() + ".qml");
     }
+    if (mainQmlFile.isEmpty()) {
+        printError("No \"*.qmlproject\", \"main.qml\" or \"" + QFileInfo(projectFileName).baseName()
+                   + ".qml\" found in \"" + projectFileName + "\".");
+        return -1;
+    }
     const QUrl mainQmlUrl = QUrl::fromUserInput(mainQmlFile);
 
     const QString qtquickcontrols2File = findFile(root, "qtquickcontrols2.conf");
