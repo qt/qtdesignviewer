@@ -66,6 +66,14 @@ void fetchProject(QByteArray *data, QString *fileName)
             ["number", "number", "string"], [heapPointer, contentSize, projectfileName]);
     });
 }
+
+void printError(const QString &error)
+{
+    QString escaped = error;
+    escaped.replace("'", "\'");
+    escaped.replace("\n", "\\n");
+    emscripten_run_script("alert('" + escaped.toUtf8() + "');");
+}
 #else // Q_OS_WASM
 
 void fetchProject(QByteArray *data, QString *fileName)
@@ -79,6 +87,11 @@ void fetchProject(QByteArray *data, QString *fileName)
     QFile file(*fileName);
     if (file.open(QIODevice::ReadOnly))
         *data = file.readAll();
+}
+
+void printError(const QString &error)
+{
+    fprintf(stderr, "%s\n", qPrintable(error));
 }
 #endif // Q_OS_WASM
 
@@ -166,13 +179,13 @@ int main(int argc, char *argv[])
     component->loadUrl(mainQmlUrl);
     while (component->isLoading())
         QCoreApplication::processEvents();
-    if (!component->isReady() ) {
-        fprintf(stderr, "%s\n", qPrintable(component->errorString()));
+    if (!component->isReady()) {
+        printError(component->errorString());
         return -1;
     }
     QObject *topLevel = component->create();
     if (!topLevel && component->isError()) {
-        fprintf(stderr, "%s\n", qPrintable(component->errorString()));
+        printError(component->errorString());
         return -1;
     }
     QScopedPointer<QQuickWindow> window(qobject_cast<QQuickWindow *>(topLevel));
