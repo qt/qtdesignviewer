@@ -72,7 +72,9 @@ void printError(const QString &error)
     QString escaped = error;
     escaped.replace("'", "\'");
     escaped.replace("\n", "\\n");
-    emscripten_run_script("alert('" + escaped.toUtf8() + "');");
+    emscripten_run_script("alert('" + escaped.toUtf8() + "');"
+                          "location.hash = '';"
+                          "location.reload();");
 }
 #else // Q_OS_WASM
 
