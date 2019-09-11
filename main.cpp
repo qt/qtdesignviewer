@@ -1,17 +1,24 @@
-#include <QGuiApplication>
-#include <QQuickView>
-#include <QQmlEngine>
-#include <QDirIterator>
-#include <QTemporaryDir>
-#include <QBuffer>
-#include <QRegularExpression>
 
 #include <QtGui/private/qzipreader_p.h>
 
+#include <QGuiApplication>
+#include <QDebug>
+#include <QQuickView>
+#include <QQmlEngine>
+#include <QDirIterator>
+#include <QBuffer>
+#include <QRegularExpression>
 #include <QQmlComponent>
 #include <QQuickItem>
 #include <QQuickWindow>
 #include <QPointer>
+#include <QResource>
+#include <QFileInfoList>
+#include <QTemporaryFile>
+#include <QTemporaryDir>
+#include <QFontDatabase>
+#include <QFontInfo>
+#include <QDir>
 
 #ifdef Q_OS_WASM
 #include <emscripten.h>
@@ -97,14 +104,39 @@ void printError(const QString &error)
 }
 #endif // Q_OS_WASM
 
-void unpackProject(const QByteArray &project, const QString &targetDir)
+QString unpackProject(const QByteArray &project)
 {
-    QDir().mkpath(targetDir);
+    #ifdef Q_OS_WASM
+        QString projectLocation = "/home/web_user/";
+    #else // Q_OS_WASM
+        QTemporaryDir tempDir("qmlprojector");
+        const QString projectLocation = tempDir.path();
+    #endif // Q_OS_WASM
+
+    QDir().mkpath(projectLocation);
+
     QBuffer buffer;
     buffer.setData(project);
     buffer.open(QIODevice::ReadOnly);
+
     QZipReader reader(&buffer);
-    reader.extractAll(targetDir);
+    reader.extractAll(projectLocation);
+
+    QDir targetDir(projectLocation);
+    // maybe it was not a zip file so try it as resource binary
+    if (targetDir.isEmpty()) {
+        qDebug() << "... try it as a resource file";
+        const uchar* data = reinterpret_cast<const uchar*>(project.data());
+        const QString resourcePath("/qmlprojector");
+        const QFileInfo sourceInfo(resourcePath);
+        const QDir sourceDir(sourceInfo.dir());
+        if (QResource::registerResource(data, resourcePath)) {
+            return ":" + resourcePath;
+        } else {
+            printError("Can not load the resource data.");
+        }
+    }
+    return projectLocation;
 }
 
 QString findFile(const QString &dir, const QString &filter)
@@ -115,15 +147,24 @@ QString findFile(const QString &dir, const QString &filter)
 
 void parseQmlprojectFile(const QString &fileName, QString *mainFile, QStringList *importPaths)
 {
+    /* if filename comes from a resource qml need qrc:/ at the mainfile and importPaths,
+     * but all other c++ call like QFileInfo::exists do not understand that, there we
+     * need to keep the : only at the beginning
+     */
     QFile file(fileName);
-    if (!file.open(QIODevice::ReadOnly))
+    if (!file.open(QIODevice::ReadOnly)) {
+        printError("Could not open " + fileName + ": " + file.errorString());
         return;
+    }
     const QString text = QString::fromUtf8(file.readAll());
     const QRegularExpression mainFileRegExp("mainFile:\\s*\"(.*)\"");
     const QRegularExpressionMatch mainFileMatch = mainFileRegExp.match(text);
     if (mainFileMatch.hasMatch()) {
-        const QString basePath = QFileInfo(fileName).path() + "/";
+        QString basePath = QFileInfo(fileName).path() + "/";
+
         *mainFile = basePath + mainFileMatch.captured(1);
+        if (mainFile->startsWith(QLatin1String(":/")))
+            *mainFile = "qrc:" + mainFile->midRef(1);
 
         const QRegularExpression importPathsRegExp("importPaths:\\s*\\[\\s*(.*)\\s*\\]");
         const QRegularExpressionMatch importPathsMatch = importPathsRegExp.match(text);
@@ -131,8 +172,11 @@ void parseQmlprojectFile(const QString &fileName, QString *mainFile, QStringList
             for (const QString path : importPathsMatch.captured(1).split(",")) {
                 QString cleanedPath = path.trimmed();
                 cleanedPath = basePath + cleanedPath.mid(1, cleanedPath.length() - 2);
-                if (QFileInfo::exists(cleanedPath))
-                    *importPaths << cleanedPath;
+                if (QFileInfo::exists(cleanedPath)) {
+                    if (cleanedPath.startsWith(QLatin1String(":/")))
+                        cleanedPath = "qrc:" + cleanedPath.midRef(1);
+                    importPaths->append(cleanedPath);
+                }
             }
         }
     } else {
@@ -142,40 +186,33 @@ void parseQmlprojectFile(const QString &fileName, QString *mainFile, QStringList
 
 int main(int argc, char *argv[])
 {
+    qDebug().noquote() << QString("Built on %1 %2\n").arg(__DATE__, __TIME__);
+
     QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
     QGuiApplication app(argc, argv);
 
     QString projectFileName;
-#ifdef Q_OS_WASM
-    QString root = "/home/web_user/";
-#else // Q_OS_WASM
-    QTemporaryDir tempDir("qmlprojector");
-    const QString root = tempDir.path();
-#endif // Q_OS_WASM
-    {
-        QByteArray projectData;
-        fetchProject(&projectData, &projectFileName);
-        unpackProject(projectData, root);
-    }
-
+    QByteArray projectData;
+    fetchProject(&projectData, &projectFileName);
+    const QString projectLocation = unpackProject(projectData);
     QString mainQmlFile;
     QStringList importPaths;
-    const QString qmlProjectFile = findFile(root, "*.qmlproject");
+    const QString qmlProjectFile = findFile(projectLocation, "*.qmlproject");
     if (!qmlProjectFile.isEmpty()) {
         parseQmlprojectFile(qmlProjectFile, &mainQmlFile, &importPaths);
     } else {
-        mainQmlFile = findFile(root, "main.qml");
+        mainQmlFile = findFile(projectLocation, "main.qml");
         if (mainQmlFile.isEmpty())
-            mainQmlFile = findFile(root, QFileInfo(projectFileName).baseName() + ".qml");
+            mainQmlFile = findFile(projectLocation, QFileInfo(projectFileName).baseName() + ".qml");
     }
     if (mainQmlFile.isEmpty()) {
         printError("No \"*.qmlproject\", \"main.qml\" or \"" + QFileInfo(projectFileName).baseName()
                    + ".qml\" found in \"" + projectFileName + "\".");
         return -1;
     }
-    const QUrl mainQmlUrl = QUrl::fromUserInput(mainQmlFile);
+    QUrl mainQmlUrl = QUrl::fromUserInput(mainQmlFile);
 
-    const QString qtquickcontrols2File = findFile(root, "qtquickcontrols2.conf");
+    const QString qtquickcontrols2File = findFile(projectLocation, "qtquickcontrols2.conf");
     if (!qtquickcontrols2File.isEmpty())
         qputenv("QT_QUICK_CONTROLS_CONF", qtquickcontrols2File.toLatin1());
 
