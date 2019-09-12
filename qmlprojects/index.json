@@ -1,22 +1,9 @@
 {
     "projects": [
-        { "file": "ClusterTutorial.zip"},
-        { "file": "CoffeeMachine.zip"},
-        { "file": "EBikeDesign.zip"},
-        { "file": "loginui1.zip"},
-        { "file": "loginui2.zip"},
-        { "file": "loginui3.zip"},
-        { "file": "loginui4.zip"},
-        { "file": "ProgressBar.zip"},
-        { "file": "SideMenu.zip"},
-        { "file": "WebinarDemo.zip"},
-        { "file": "barScaleDial.zip"},
-        { "file": "fileSelectors.zip"},
-        { "file": "gauge.zip"},
-        { "file": "smartdemo.zip"},
-        { "file": "translation.zip"},
-        { "file": "virtualsummit.zip"},
-        { "file": "webinar.zip"},
-        { "file": "gallery.zip"}
+        { "file": "ClusterTutorial.qmlrc"},
+        { "file": "CoffeeMachine.qmlrc"},
+        { "file": "EBikeDesign.qmlrc"},
+        { "file": "SideMenu.qmlrc"},
+        { "file": "WebinarDemo.qmlrc"}
     ]
 }
