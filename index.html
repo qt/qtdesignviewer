@@ -8,34 +8,58 @@
     <link rel="icon" href="qtdesignstudioviewer-48.png" sizes="48x48">
     <title>Qml Projector</title>
     <style>
-      html, body { padding: 0; overflow: hidden; margin: 0; height: 100%; }
-      canvas { border: 0px none; background-color: white; height: 100%; width: 100%; outline: 0px solid transparent; caret-color: transparent; cursor: default; }
-      #dropzone { border: 3px dashed; text-align: center; }
-      #dropzone > p { padding: 30px; }
-      #dropzone, #uploadform, #projectsmenu  { width: 70%; margin: auto; }
-      #projectsmenu { display: none; padding: 8px; }
-      #projectsmenulist { list-style-type: none; background-color: lightgray }
-      #projectsmenulist, #projectsmenulist > li { float: left; margin: 5px; padding: 3px;}
+      @font-face {
+	    font-family: Titillium;
+        src: url(Titillium-Light.otf);
+		font-weight: 300;
+      }
+      @font-face {
+	    font-family: Titillium;
+        src: url(Titillium-Thin.otf);
+		font-weight: 100;
+      }
+      @font-face {
+	    font-family: Titillium;
+        src: url(Titillium-ThinItalic.otf);
+		font-weight: 100;
+		font-style: italic;
+      }
+      html, body { padding: 0; overflow: hidden; margin: 0; height: 100%; background-color: #262525; color: #e0e0e0; font-family: Titillium; font-size: 1.1em; font-weight: 100; font-style: italic; }
+	  a {color: #e0e0e0; }
+      canvas { border: 0px none; height: 100%; width: 100%; outline: 0px solid transparent; caret-color: transparent; cursor: default; }
+      #qtspinner { margin: 0; }
+      #title { font-size: 2em; font-weight: 300; font-style: normal; font-stretch: condensed; }
+      #instruction { font-style: normal; }
+      #subtitle { padding-top: 0.4em; padding-bottom: 1.4em; }
+      #dropzone { border: 0.18em dashed; text-align: center; background-color: #353535; }
+      #dropzone { padding: 1.2em; }
+      #dropzone, #projectsmenu { width: 70%; margin: auto; }
+      #projectsmenu { display: none; padding: 0; }
+      #projectsmenulist { list-style-type: none; background-color: #353535; }
+      #projectsmenulist, #projectsmenulist > li { float: left; padding: 0; margin: 0; }
+      #projectsmenulist > li { margin: 1em;  }
     </style>
   </head>
   <body onload="init()">
     <figure style="overflow: visible;" id="qtspinner">
       <center style="line-height:150%">
-        <img src="qtdesignstudioviewer-256.png" srcset="qtdesignstudioviewer-256.png 1x, qtdesignstudioviewer-512.png 2x" width="256" height="256" style="display: block"/>
+        <img src="qtdesignstudioviewer-128.png" srcset="qtdesignstudioviewer-128.png 1x, qtdesignstudioviewer-256.png 2x" width="128" height="128" style="display: block"/>
+        <div id="title">Qt Design Viewer</div>
+        <div id="subtitle" class="subtitleclass">powered by web assembly</div>
         <div id="qtstatus"></div>
         <noscript>JavaScript is disabled. Please enable JavaScript to use this application.</noscript>
       </center>
     </figure>
     <div id="dropzone">
-      <p>... drag a Qml project that you have to this Drop Zone ...
-      <br/>(.zip-ed folder of a pure Qml project, containing either a <em>.qmlproject</em> file or a <em>main.qml</em>)</p>
+      <div id="instruction">drop your qmlrc file or zip file here</div>
+      <p>(package with a pure Qml project, containing either a .qmlproject file or a main.qml)</p>
+      <form id="uploadform">
+      <input id="fileinput" type="file" accept=".zip" /><br/>
+      <label for="fileinput">(or upload by clicking here)</label>
+      </form>
     </div>
-    <form id="uploadform">
-      <label for="fileinput">... or select a Qml project that you have on your computer:</label>
-      <input id="fileinput" type="file" accept=".zip" />
-    </form>
     <div id="projectsmenu">
-        ... or pick a project from here ...
+        <p>EXAMPLES</p>
         <ul id="projectsmenulist">
         </ul>
       </div>
