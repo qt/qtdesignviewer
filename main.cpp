@@ -104,27 +104,20 @@ void printError(const QString &error)
 }
 #endif // Q_OS_WASM
 
-QString unpackProject(const QByteArray &project)
+QString unpackProject(const QByteArray &project, const QString &targetDir)
 {
-    #ifdef Q_OS_WASM
-        QString projectLocation = "/home/web_user/";
-    #else // Q_OS_WASM
-        QTemporaryDir tempDir("qmlprojector");
-        const QString projectLocation = tempDir.path();
-    #endif // Q_OS_WASM
-
-    QDir().mkpath(projectLocation);
+    QDir().mkpath(targetDir);
 
     QBuffer buffer;
     buffer.setData(project);
     buffer.open(QIODevice::ReadOnly);
 
     QZipReader reader(&buffer);
-    reader.extractAll(projectLocation);
+    reader.extractAll(targetDir);
 
-    QDir targetDir(projectLocation);
+    QDir projectLocationDir(targetDir);
     // maybe it was not a zip file so try it as resource binary
-    if (targetDir.isEmpty()) {
+    if (projectLocationDir.isEmpty()) {
         qDebug() << "... try it as a resource file";
         const uchar* data = reinterpret_cast<const uchar*>(project.data());
         const QString resourcePath("/qmlprojector");
@@ -136,7 +129,7 @@ QString unpackProject(const QByteArray &project)
             printError("Can not load the resource data.");
         }
     }
-    return projectLocation;
+    return targetDir;
 }
 
 QString findFile(const QString &dir, const QString &filter)
@@ -190,11 +183,18 @@ int main(int argc, char *argv[])
 
     QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
     QGuiApplication app(argc, argv);
-
     QString projectFileName;
     QByteArray projectData;
     fetchProject(&projectData, &projectFileName);
-    const QString projectLocation = unpackProject(projectData);
+
+#ifdef Q_OS_WASM
+    QString projectLocation = "/home/web_user/";
+#else // Q_OS_WASM
+    QTemporaryDir tempDir("qmlprojector");
+    QString projectLocation = tempDir.path();
+#endif // Q_OS_WASM
+
+    projectLocation = unpackProject(projectData, projectLocation);
     QString mainQmlFile;
     QStringList importPaths;
     const QString qmlProjectFile = findFile(projectLocation, "*.qmlproject");
