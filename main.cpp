@@ -83,6 +83,13 @@ void printError(const QString &error)
                           "location.hash = '';"
                           "location.reload();");
 }
+
+void setScreenSize(const QSize &size)
+{
+    const QString command =
+            QString::fromLatin1("setScreenSize(%1, %2);").arg(size.width()).arg(size.height());
+    emscripten_run_script(command.toUtf8());
+}
 #else // Q_OS_WASM
 
 void fetchProject(QByteArray *data, QString *fileName)
@@ -101,6 +108,11 @@ void fetchProject(QByteArray *data, QString *fileName)
 void printError(const QString &error)
 {
     fprintf(stderr, "%s\n", qPrintable(error));
+}
+
+void setScreenSize(const QSize &size)
+{
+    fprintf(stderr, "Screen size: %d x %d\n", size.width(), size.height());
 }
 #endif // Q_OS_WASM
 
@@ -244,7 +256,9 @@ int main(int argc, char *argv[])
             view->setResizeMode(QQuickView::SizeViewToRootObject);
         }
     }
-    window->showMaximized();
+
+    setScreenSize(window->size());
+    window->show();
 
     const int exitcode = app.exec();
     delete component;

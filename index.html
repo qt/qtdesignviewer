@@ -3,6 +3,7 @@
   <head>
     <meta charset="utf-8">
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="icon" href="qtdesignstudioviewer-16.png" sizes="16x16">
     <link rel="icon" href="qtdesignstudioviewer-32.png" sizes="32x32">
     <link rel="icon" href="qtdesignstudioviewer-48.png" sizes="48x48">
@@ -26,7 +27,8 @@
       }
       html, body { padding: 0; overflow: hidden; margin: 0; height: 100%; background-color: #262525; color: #e0e0e0; font-family: Titillium; font-size: 1.1em; font-weight: 100; font-style: italic; }
 	  a {color: #e0e0e0; }
-      canvas { border: 0px none; height: 100%; width: 100%; outline: 0px solid transparent; caret-color: transparent; cursor: default; }
+      canvas { border: 0px none; height: 1px; width: 1px; margin: 0; outline: 0px solid transparent; caret-color: transparent; cursor: default;
+               position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); }
       #qtspinner { margin: 0; }
       #title { font-size: 2em; font-weight: 300; font-style: normal; font-stretch: condensed; }
       #instruction { font-style: normal; }
@@ -72,6 +74,7 @@
         var fileinput = document.querySelector('#fileinput');
         var dropzone = document.querySelector('#dropzone');
         var projectsmenu = document.querySelector('#projectsmenu');
+        var qtLoader;
 
         function loadFileInHash() {
           var filename = location.hash.split('#')[1]
@@ -161,7 +164,7 @@
           var canvas = document.querySelector('#qtcanvas');
           var status = document.querySelector('#qtstatus')
 
-          var qtLoader = QtLoader({
+          qtLoader = QtLoader({
             canvasElements : [canvas],
             showLoader: function(loaderStatus) {
                 spinner.style.display = 'block';
@@ -188,6 +191,13 @@
             },
           });
           qtLoader.loadEmscriptenModule("qmlprojector");
+        }
+
+        function setScreenSize(width, height) {
+          var canvas = document.querySelector('#qtcanvas');
+          canvas.style.width = width + "px";
+          canvas.style.height = height + "px";
+          qtLoader.resizeCanvasElement(canvas);
         }
     </script>
     <script type="text/javascript" src="qtloader.js"></script>
