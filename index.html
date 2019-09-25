@@ -26,9 +26,8 @@
 		font-style: italic;
       }
       html, body { padding: 0; overflow: hidden; margin: 0; height: 100%; background-color: #262525; color: #e0e0e0; font-family: Titillium; font-size: 1.1em; font-weight: 100; font-style: italic; }
-	  a {color: #e0e0e0; }
-      canvas { border: 0px none; height: 1px; width: 1px; margin: 0; outline: 0px solid transparent; caret-color: transparent; cursor: default;
-               position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); }
+      a {color: #e0e0e0; }
+      canvas { border: 0px none; height: 0px; width: 0px; margin: 0; outline: 0px solid transparent; caret-color: transparent; cursor: default; }
       #qtspinner { margin: 0; }
       #title { font-size: 2em; font-weight: 300; font-style: normal; font-stretch: condensed; }
       #instruction { font-style: normal; }
@@ -195,8 +194,17 @@
 
         function setScreenSize(width, height) {
           var canvas = document.querySelector('#qtcanvas');
-          canvas.style.width = width + "px";
-          canvas.style.height = height + "px";
+          if (width > 1 && height > 1) {
+            canvas.style.width = width + "px";
+            canvas.style.height = height + "px";
+            canvas.style.position = "absolute";
+            canvas.style.top = canvas.style.left = "50%";
+            canvas.style.transform = "translate(-50%, -50%)";
+          } else {
+            // undefined root size
+            canvas.style.width = "100%";
+            canvas.style.height = "100%";
+          }
           qtLoader.resizeCanvasElement(canvas);
         }
     </script>

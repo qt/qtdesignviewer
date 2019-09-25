@@ -278,10 +278,10 @@ int main(int argc, char *argv[])
             window.reset(view);
             view->setContent(mainQmlUrl, component, contentItem);
             view->setResizeMode(QQuickView::SizeViewToRootObject);
+            setScreenSize(window->size());
         }
     }
 
-    setScreenSize(window->size());
     window->show();
 
     const int exitcode = app.exec();
