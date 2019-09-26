@@ -25,7 +25,7 @@
 		font-weight: 100;
 		font-style: italic;
       }
-      html, body { padding: 0; margin: 0; background-color: #262525; color: #e0e0e0; font-family: Titillium; font-size: 1.1em; font-weight: 100; font-style: italic; }
+      body { padding: 0; margin: 0; background-color: #262525; color: #e0e0e0; font-family: Titillium; font-size: 1.1em; font-weight: 100; font-style: italic; }
       a {color: #e0e0e0; }
       canvas { border: 0px none; height: 0px; width: 0px; margin: auto; outline: 0px solid transparent; caret-color: transparent; cursor: default; }
       #qtspinner { margin: 0; }
@@ -199,9 +199,8 @@
             canvas.style.height = `${height}px`;
           } else {
             // undefined root size
-            canvas.style.width = "100%";
-            canvas.style.height = "100%";
-            document.body.style.height = "100%";
+            canvas.style.width = canvas.style.height = "100%";
+            document.documentElement.style.height = document.body.style.height = "100%";
           }
           qtLoader.resizeCanvasElement(canvas);
         }
