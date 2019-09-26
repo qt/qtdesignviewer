@@ -271,6 +271,7 @@ int main(int argc, char *argv[])
     QScopedPointer<QQuickWindow> window(qobject_cast<QQuickWindow *>(topLevel));
     if (window) {
         engine.setIncubationController(window->incubationController());
+        setScreenSize(QSize()); // Full browser size. TODO: Find out initial ApplicationWindow size
     } else {
         QQuickItem *contentItem = qobject_cast<QQuickItem *>(topLevel);
         if (contentItem) {
@@ -278,7 +279,7 @@ int main(int argc, char *argv[])
             window.reset(view);
             view->setContent(mainQmlUrl, component, contentItem);
             view->setResizeMode(QQuickView::SizeViewToRootObject);
-            setScreenSize(window->size());
+            setScreenSize(QSize(contentItem->width(), contentItem->height()));
         }
     }
 
