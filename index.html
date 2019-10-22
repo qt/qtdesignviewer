@@ -38,7 +38,8 @@
       #projectsmenu { display: none; padding: 0; }
       #projectsmenulist { list-style-type: none; background-color: #353535; }
       #projectsmenulist, #projectsmenulist > li { float: left; padding: 0; margin: 0; }
-      #projectsmenulist > li { margin: 1em;  }
+      #projectsmenulist > li { margin: 1em; }
+      #footer { padding-top: 1.2em; clear: both; font-size: 0.8em; text-align: center; }
     </style>
   </head>
   <body onload="init()">
@@ -59,11 +60,20 @@
       </form>
     </div>
     <div id="projectsmenu">
-        <p>EXAMPLES</p>
-        <ul id="projectsmenulist">
-        </ul>
-      </div>
-   <canvas id="qtcanvas" oncontextmenu="event.preventDefault()" contenteditable="true"></canvas>
+      <p>EXAMPLES</p>
+      <ul id="projectsmenulist">
+      </ul>
+    </div>
+    <canvas id="qtcanvas" oncontextmenu="event.preventDefault()" contenteditable="true"></canvas>
+    <div id="footer">
+      <p>
+        Note: This is a static web page. The Qml application that you load runs and remains locally in Your browser, nothing gets uploaded into the cloud.
+      </p>
+      <p>
+        <a href="https://git.qt.io/aportale/designviewer">"Qt Design Viewer" sources</a>
+        - Made with: <a href="https://doc.qt.io/qt-5/wasm.html">Qt for WebAssembly</a>
+      </p>
+    <div>
 
     <script type='text/javascript'>
         var contentArray;
@@ -73,7 +83,12 @@
         var fileinput = document.querySelector('#fileinput');
         var dropzone = document.querySelector('#dropzone');
         var projectsmenu = document.querySelector('#projectsmenu');
+        var footer = document.querySelector('#footer');
         var qtLoader;
+
+        function hideStuff() {
+           uploadform.style.display = dropzone.style.display = projectsmenu.style.display = footer.style.display = 'none';
+        }
 
         function loadFileInHash() {
           var filename = location.hash.split('#')[1]
@@ -93,7 +108,7 @@
           var file = fileinput.files[0];
           reader.onload = function() {
               contentArray = new Uint8Array(reader.result);
-              uploadform.style.display = dropzone.style.display = projectsmenu.style.display = 'none';
+              hideStuff();
               projectfileName = file.name;
               loadProjector();
           };
@@ -110,7 +125,7 @@
               return;
             }
             contentArray = new Uint8Array(request.response);
-            uploadform.style.display = dropzone.style.display = projectsmenu.style.display = 'none';
+            hideStuff();
             projectfileName = fileName;
             loadProjector();
           }
