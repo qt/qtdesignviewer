@@ -21,4 +21,4 @@ You can also select one of the premade examples. If you host the Qt Design Viewe
 This is a static web page. The Qml application that You load runs and remains locally in Your browser, nothing gets uploaded into the cloud.
 
 ## Live version
-Check out the [live version](http://qt-webassembly.io/designviewer/) of the Qt Design Viewer.
+Check out the [live version](https://qt-webassembly.io/designviewer/) of the Qt Design Viewer.
