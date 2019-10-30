@@ -13,9 +13,9 @@ The Qt Design Viewer lets You drop the _.zip_/_.qmlrc_, or load it via a file se
 ![Qt Design Viewer in action](screenshot.png "Qt Design Viewer in action")
 
 You can also select one of the premade examples. If you host the Qt Design Viewer on Your web server, You can offer your own examples. Direct links to hosted examples can be sent like this:
-* http://qt-webassembly.io/designviewer/#ClusterTutorial.qmlrc
-* http://qt-webassembly.io/designviewer/#CoffeeMachine.qmlrc
-* http://qt-webassembly.io/designviewer/#SideMenu.qmlrc
+* https://qt-webassembly.io/designviewer/#ClusterTutorial.qmlrc
+* https://qt-webassembly.io/designviewer/#CoffeeMachine.qmlrc
+* https://qt-webassembly.io/designviewer/#SideMenu.qmlrc
 
 ## Note
 This is a static web page. The Qml application that You load runs and remains locally in Your browser, nothing gets uploaded into the cloud.
