@@ -198,7 +198,7 @@ void parseQmlprojectFile(const QString &fileName, QString *mainFile, QStringList
         const QRegularExpression importPathsRegExp("importPaths:\\s*\\[\\s*(.*)\\s*\\]");
         const QRegularExpressionMatch importPathsMatch = importPathsRegExp.match(text);
         if (importPathsMatch.hasMatch()) {
-            for (const QString path : importPathsMatch.captured(1).split(",")) {
+            for (const QString &path : importPathsMatch.captured(1).split(",")) {
                 QString cleanedPath = path.trimmed();
                 cleanedPath = basePath + cleanedPath.mid(1, cleanedPath.length() - 2);
                 if (QFileInfo::exists(cleanedPath)) {
