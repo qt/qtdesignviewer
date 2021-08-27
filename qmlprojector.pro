@@ -10,8 +10,20 @@ DEFINES += QT_DEPRECATED_WARNINGS
 SOURCES += \
     main.cpp
 
-OTHER_FILES += \
-    index.html
+wasm {
+    OTHER_FILES += \
+        index.html
+}
+
+android {
+    QT += widgets
+    TARGET = qtdesignviewer
+
+    DISTFILES += \
+        android/AndroidManifest.xml
+
+    ANDROID_PACKAGE_SOURCE_DIR = $$PWD/android
+}
 
 RESOURCES += \
     $$files(importdummy.qml)

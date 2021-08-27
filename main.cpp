@@ -43,6 +43,10 @@
 #include <QFontDatabase>
 #include <QFontInfo>
 #include <QDir>
+#if defined(Q_OS_ANDROID)
+#include <QApplication>
+#include <QMessageBox>
+#endif
 
 #ifdef Q_OS_WASM
 #include <emscripten.h>
@@ -114,7 +118,27 @@ void setScreenSize(const QSize &size)
             QString::fromLatin1("setScreenSize(%1, %2);").arg(size.width()).arg(size.height());
     emscripten_run_script(command.toUtf8());
 }
-#else // Q_OS_WASM
+#elif defined(Q_OS_ANDROID)
+std::function<int(QStringList)> showFatalMessageAndDie;
+
+void fetchProject(QByteArray *data, QString *fileName)
+{
+    *fileName = QCoreApplication::arguments().at(1);
+    QFile file(*fileName);
+    if (file.open(QIODevice::ReadOnly))
+        *data = file.readAll();
+}
+
+void printError(const QString &error)
+{
+    qDebug() << error;
+}
+
+void setScreenSize(const QSize &size)
+{
+    qDebug() << "Screen size: " << size.width() << "x" << size.height();
+}
+#else
 
 void fetchProject(QByteArray *data, QString *fileName)
 {
@@ -140,7 +164,7 @@ void setScreenSize(const QSize &size)
 }
 #endif // Q_OS_WASM
 
-QString unpackProject(const QByteArray &project, const QString &targetDir)
+QString unpackProject(const QByteArray &project, const QString &targetDir, bool skipExtract = false)
 {
     QDir().mkpath(targetDir);
 
@@ -148,13 +172,16 @@ QString unpackProject(const QByteArray &project, const QString &targetDir)
     buffer.setData(project);
     buffer.open(QIODevice::ReadOnly);
 
-    QZipReader reader(&buffer);
-    reader.extractAll(targetDir);
+    if (!skipExtract) {
+        QZipReader reader(&buffer);
+        reader.extractAll(targetDir);
+    }
 
     QDir projectLocationDir(targetDir);
     // maybe it was not a zip file so try it as resource binary
     if (projectLocationDir.isEmpty()) {
-        qDebug() << "... try it as a resource file";
+        if (!skipExtract)
+            qDebug() << "File could not be extracted. Trying to open it as a resource file.";
         const uchar* data = reinterpret_cast<const uchar*>(project.data());
         const QString resourcePath("/qmlprojector");
         const QFileInfo sourceInfo(resourcePath);
@@ -193,8 +220,11 @@ void parseQmlprojectFile(const QString &fileName, QString *mainFile, QStringList
 
         *mainFile = basePath + mainFileMatch.captured(1);
         if (mainFile->startsWith(QLatin1String(":/")))
+#if QT_VERSION_MAJOR < 6
             *mainFile = "qrc:" + mainFile->midRef(1);
-
+#else
+            *mainFile = "qrc:" + mainFile->mid(1);
+#endif
         const QRegularExpression importPathsRegExp("importPaths:\\s*\\[\\s*(.*)\\s*\\]");
         const QRegularExpressionMatch importPathsMatch = importPathsRegExp.match(text);
         if (importPathsMatch.hasMatch()) {
@@ -203,7 +233,11 @@ void parseQmlprojectFile(const QString &fileName, QString *mainFile, QStringList
                 cleanedPath = basePath + cleanedPath.mid(1, cleanedPath.length() - 2);
                 if (QFileInfo::exists(cleanedPath)) {
                     if (cleanedPath.startsWith(QLatin1String(":/")))
+#if QT_VERSION_MAJOR < 6
                         cleanedPath = "qrc:" + cleanedPath.midRef(1);
+#else
+                        cleanedPath = "qrc:" + cleanedPath.mid(1);
+#endif
                     importPaths->append(cleanedPath);
                 }
             }
@@ -217,8 +251,38 @@ int main(int argc, char *argv[])
 {
     qDebug().noquote() << QString("Built on %1 %2\n").arg(__DATE__, __TIME__);
 
+#if defined(Q_OS_ANDROID)
+    QString mainQml;
+
+    showFatalMessageAndDie = [&argc,&argv](QStringList messages) {
+        QApplication *app = static_cast<QApplication*>(QApplication::instance());
+        const bool createdLocally = (app == nullptr);
+        if (createdLocally)
+            app = new QApplication(argc, argv);
+        messages.append("\nThis app is supposed to be run from Qt Design Studio.");
+        QMessageBox msg(QMessageBox::Critical, "Fatal error", messages.join("\n"), QMessageBox::Ok);
+        QObject::connect(&msg, &QMessageBox::finished, [&app](int){app->exit(-1);});
+        msg.show();
+        int retVal = app->exec();
+        if (createdLocally) {
+            delete app;
+        }
+        return retVal;
+    };
+    if (argc < 2) {
+        return showFatalMessageAndDie({QString("Qml project to show has not been defined.")});
+    }
+#endif
+#if QT_VERSION_MAJOR < 6
     QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
+#endif
+
+#if defined(Q_OS_ANDROID)
+    QApplication app(argc, argv);
+    QApplication::setApplicationName(QStringLiteral("Qt Design Viewer"));
+#else
     QGuiApplication app(argc, argv);
+#endif
     QString projectFileName;
     QByteArray projectData;
     fetchProject(&projectData, &projectFileName);
@@ -230,7 +294,12 @@ int main(int argc, char *argv[])
     QString projectLocation = tempDir.path();
 #endif // Q_OS_WASM
 
+#if defined(Q_OS_ANDROID)
+    const bool skipZipOpenAttempt = projectFileName.endsWith(".qmlrc");
+    projectLocation = unpackProject(projectData, projectLocation, skipZipOpenAttempt);
+#else
     projectLocation = unpackProject(projectData, projectLocation);
+#endif
     QString mainQmlFile;
     QStringList importPaths;
     const QString qmlProjectFile = findFile(projectLocation, "*.qmlproject");
@@ -261,11 +330,13 @@ int main(int argc, char *argv[])
         QCoreApplication::processEvents();
     if (!component->isReady()) {
         printError(component->errorString());
+        showFatalMessageAndDie({"Error while loading Qml component.", component->errorString()});
         return -1;
     }
     QObject *topLevel = component->create();
     if (!topLevel && component->isError()) {
-        printError(component->errorString());
+        printError("Create error");
+        showFatalMessageAndDie({"Error while creating Qml component.", component->errorString()});
         return -1;
     }
     QScopedPointer<QQuickWindow> window(qobject_cast<QQuickWindow *>(topLevel));
