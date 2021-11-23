@@ -330,13 +330,17 @@ int main(int argc, char *argv[])
         QCoreApplication::processEvents();
     if (!component->isReady()) {
         printError(component->errorString());
+#if defined(Q_OS_ANDROID)
         showFatalMessageAndDie({"Error while loading Qml component.", component->errorString()});
+#endif
         return -1;
     }
     QObject *topLevel = component->create();
     if (!topLevel && component->isError()) {
         printError("Create error");
+#if defined(Q_OS_ANDROID)
         showFatalMessageAndDie({"Error while creating Qml component.", component->errorString()});
+#endif
         return -1;
     }
     QScopedPointer<QQuickWindow> window(qobject_cast<QQuickWindow *>(topLevel));
