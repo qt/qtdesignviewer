@@ -17,7 +17,6 @@ wasm {
 
 android {
     QT += widgets
-    TARGET = qtdesignviewer
 
     DISTFILES += \
         android/AndroidManifest.xml
