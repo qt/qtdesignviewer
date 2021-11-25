@@ -183,7 +183,7 @@ QString unpackProject(const QByteArray &project, const QString &targetDir, bool 
         if (!skipExtract)
             qDebug() << "File could not be extracted. Trying to open it as a resource file.";
         const uchar* data = reinterpret_cast<const uchar*>(project.data());
-        const QString resourcePath("/qmlprojector");
+        const QString resourcePath("/qtdesignviewer");
         const QFileInfo sourceInfo(resourcePath);
         const QDir sourceDir(sourceInfo.dir());
         if (QResource::registerResource(data, resourcePath)) {
