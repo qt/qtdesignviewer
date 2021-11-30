@@ -1,85 +1,92 @@
 // Hack to force the qml plugins to be linked statically
 // TODO: Find out how to do that in .pro or .cpp file
 
-import QtQuick 2.13
-import QtQuick.Controls 1.5
-import QtQuick.Controls 2.13
-import QtQuick.Dialogs 1.3
-import QtQuick.Extras 1.4
-import QtQuick.Layouts 1.3
-import QtQuick.Particles 2.13
-import QtQuick.PrivateWidgets 1.1
-import QtQuick.Templates 2.13
-import QtQuick.VirtualKeyboard 2.2
-import QtQuick.VirtualKeyboard.Settings 2.2
-import QtQuick.Window 2.13
-import QtQuick.XmlListModel 2.13
+import QtQuick
+import QtQuick.Controls
+import QtQuick.Dialogs
+import QtQuick.Extras
+import QtQuick.Layouts
+import QtQuick.Particles
+import QtQuick.PrivateWidgets
+import QtQuick.Templates
+import QtQuick.VirtualKeyboard
+import QtQuick.VirtualKeyboard.Settings
+import QtQuick.Window
+import QtQuick.XmlListModel
+import QtQuick.Timeline
+import QtQuick.Shapes
 
-// QtQuick.Timeline needs to e built from its repo. Will likely be included in Qt 5.14
-import QtQuick.Timeline 1.0
+import Qt.labs.calendar
+import Qt.labs.folderlistmodel
+// import Qt.labs.lottieqt
+import Qt.labs.platform
+import Qt.labs.qmlmodels
+import Qt.labs.settings
+import Qt.labs.wavefrontmesh
+import Qt.labs.sharedimage
 
-// QtQuick.Shapes needs to be separately built from
-// qtdeclarative/src/imports/shapes/
-// TODO: Find out if that is build system bug
-import QtQuick.Shapes 1.0
+import QtBluetooth
+import QtCanvas3D
+import QtCharts
+import QtDataVisualization
+// import QtFeedback
+import QtGamepad
+import QtGraphicalEffects
+import QtLocation
+import QtMultimedia
+import QtNfc
+import QtPositioning
+import QtPurchasing
+import QtRemoteObjects
+import QtScxml
+import QtSensors
+import QtTest
+import QtWebChannel
+import QtWebSockets
+import QtWebView
 
-import Qt.labs.calendar 1.0
-import Qt.labs.folderlistmodel 2.13
-// import Qt.labs.lottieqt 1.0
-import Qt.labs.platform 1.0
-import Qt.labs.qmlmodels 1.0
-import Qt.labs.settings 1.0
-import Qt.labs.wavefrontmesh 1.13
+import QtQml
+import QtQml.Models
+import QtQml.RemoteObjects
+import QtQml.StateMachine
 
-import QtBluetooth 5.13
-import QtCanvas3D 1.1
-import QtCharts 2.13
-import QtDataVisualization 1.13
-// import QtFeedback 5.0
-import QtGamepad 1.13
-import QtGraphicalEffects 1.13
-import QtMultimedia 5.13
-import QtNfc 5.13
-import QtPurchasing 1.13
-import QtRemoteObjects 5.13
-import QtScxml 5.13
-import QtSensors 5.13
-import QtTest 1.13
-import QtWebChannel 1.13
-import QtWebSockets 1.13
-import QtWebView 1.13
+import QtQuick.Scene3D
+import QtQuick.Scene2D
+import QtQuick.LocalStorage
 
-import QtQml.Models 2.13
-import QtQml.RemoteObjects 1.0
-import QtQml.StateMachine 1.13
+import QtQuick.Controls.Styles
+import QtQuick.Controls.Material
+import QtQuick.Controls.Universal
+import QtQuick.Controls.Imagine
 
-import Qt.labs.sharedimage 1.13
-import QtLocation 5.9
-import QtQuick.Scene3D 2.0
-import QtQuick.Scene2D 2.9
-import QtQuick.LocalStorage 2.13
-
-import QtQuick.Controls.Styles 1.4
-import QtQuick.Controls.Material 2.12
-import QtQuick.Controls.Universal 2.12
-import QtQuick.Controls.Imagine 2.0
-
-import QtQuick.Studio.Components 1.0
-import QtQuick.Studio.Effects 1.0
-import Qt3D.Extras 2.9
-import Qt3D.Input 2.1
-import Qt3D.Logic 2.0
-import Qt3D.Core 2.9
-import Qt3D.Render 2.9
-import Qt3D.Animation 2.9
-import QtPositioning 5.9
-import QtQml 2.13
+import Qt3D.Extras
+import Qt3D.Input
+import Qt3D.Logic
+import Qt3D.Core
+import Qt3D.Render
+import Qt3D.Animation
 
 // TODO: Find out how to build that
-import Qt.SafeRenderer 1.1
+import Qt.SafeRenderer
 
 // Will QtStudio3D.OpenGL or its successor support WebAssembly?
-import QtStudio3D.OpenGL 2.4
+import QtStudio3D.OpenGL
+
+import Qt5Compat.GraphicalEffects
+
+import FlowView
+
+import Components
+import QtQuick.Studio.Components
+import QtQuick.Studio.Effects
+import QtQuick.Studio.EventSimulator
+import QtQuick.Studio.EventSystem
+import QtQuick.Studio.LogicHelper
+import QtQuick.Studio.MultiText
+
+import QtQuick3D
+import QtQuick3D.Effects
+import QtQuick3D.Particles3D
 
 ApplicationWindow {
     visible: true
