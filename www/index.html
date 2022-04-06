@@ -208,6 +208,14 @@
                 canvas.style.display = 'block';
             },
           });
+
+          // workaround for making sure that self.module is set up before
+          // running setScreenSize
+          self.moduleConfig.preRun = []
+          self.moduleConfig.preRun.push(function(module) {
+            self.module = module;
+          });
+
           qtLoader.loadEmscriptenModule("qtdesignviewer");
         }
 
@@ -222,8 +230,7 @@
             document.documentElement.style.height = document.body.style.height = "100%";
             document.documentElement.style.overflow = document.body.style.overflow = "hidden";
           }
-          // removed for now to prevent crash
-          // qtLoader.resizeCanvasElement(canvas);
+          qtLoader.resizeCanvasElement(canvas);
         }
     </script>
     <script type="text/javascript" src="qtloader.js"></script>
