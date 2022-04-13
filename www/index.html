@@ -77,6 +77,7 @@
         | Made with: <a href="https://doc.qt.io/qt-5/wasm.html">Qt for WebAssembly</a>
         | Powered by: <a href="https://webassembly.org/">WebAssembly</a> & <a href="https://emscripten.org/">emscripten</a>
       </p>
+      <p id="versioninfo"></p>
     <div>
 
     <script type='text/javascript'>
@@ -88,7 +89,9 @@
         var dropzone = document.querySelector('#dropzone');
         var projectsmenu = document.querySelector('#projectsmenu');
         var footer = document.querySelector('#footer');
+        var canvas = document.querySelector('#qtcanvas');
         var qtLoader;
+        var versionInfo = undefined;
 
         function hideStuff() {
            uploadform.style.display = dropzone.style.display = projectsmenu.style.display = footer.style.display = 'none';
@@ -160,11 +163,33 @@
           request.send(null);
         }
 
+        function showVersionInfo() {
+          var request = new XMLHttpRequest();
+          request.responseType = "json";
+          request.onload = function (oEvent) {
+            var json = request.response;
+            console.log("JSON: ", json)
+            var versionElement = document.querySelector('#versioninfo');
+            versionInfo = request.response;
+            var version = json.version;
+            var buildNumber = json.buildNumber;
+            var versionText = "Version: " + version;
+            if(buildNumber !== undefined)
+              versionText += "." + buildNumber;
+            versionElement.innerHTML = versionText;
+          }
+          request.open("GET", "version.json", true);
+          request.send(null);
+        }
+
+
         function init() {
           if (location.hash == '')
             listExamples();
           else
             loadFileInHash();
+
+          showVersionInfo();
 
           fileinput.onchange = handleFileSelection;
           dropzone.ondragover = dropzone.ondragenter = function(event) {
@@ -179,7 +204,6 @@
 
         function loadProjector() {
           var spinner = document.querySelector('#qtspinner');
-          var canvas = document.querySelector('#qtcanvas');
           var status = document.querySelector('#qtstatus')
 
           qtLoader = QtLoader({
@@ -220,7 +244,6 @@
         }
 
         function setScreenSize(width, height) {
-          var canvas = document.querySelector('#qtcanvas');
           if (width > 1 && height > 1) {
             canvas.style.width = `${width}px`;
             canvas.style.height = `${height}px`;

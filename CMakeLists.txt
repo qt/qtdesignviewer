@@ -41,5 +41,6 @@ target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE
 
 qt6_import_qml_plugins(${CMAKE_PROJECT_NAME})
 
-add_subdirectory(www)
+file(COPY ${CMAKE_SOURCE_DIR}/www/ DESTINATION ${CMAKE_BINARY_DIR}/)
+
 
