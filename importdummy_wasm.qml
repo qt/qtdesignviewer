@@ -7,9 +7,9 @@ import QtQml
 import QtQml.Models
 import QtQml.StateMachine
 
-// import QtQuick3D
-// import QtQuick3D.Effects
-// import QtQuick3D.Particles3D
+import QtQuick3D
+import QtQuick3D.Effects
+import QtQuick3D.Particles3D
 
 import QtQuick.Studio.Components
 import QtQuick.Studio.Effects
