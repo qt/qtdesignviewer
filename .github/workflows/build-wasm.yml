@@ -182,19 +182,18 @@ jobs:
       run: |
         cd qtdesignviewer
 
+        # APPLY BUILD NUMBER
+        sed -i 's/#buildnumber#/${{github.run_number}}/' version.json
+
+        # BUILD PACKAGE
         mkdir build
-        mv *.png build
-        mv *.svg build
         mv *.wasm build
         mv *.js build
+        mv *.json build
         mv *.otf build
+        mv *.png build
+        mv *.svg build
         mv index.html build
-
-        tar -czvf qtdesignviewer_wasm.tar.gz build
-        mv qtdesignviewer_wasm.tar.gz ..
-
-        cd build
-        ls -al
 
     - uses: actions/upload-artifact@v2
       with:
