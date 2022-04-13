@@ -31,6 +31,7 @@
       html, body { padding: 0; margin: 0; background-color: #262525; color: #e0e0e0; font-family: Titillium; font-size: 1.1em; font-weight: 100; font-style: italic; }
       a {color: #e0e0e0; }
       canvas { border: 0px none; height: 0px; width: 0px; margin: auto; outline: 0px solid transparent; caret-color: transparent; cursor: default; }
+      #topnav { margin: 10px; margin-bottom: 20px; display: none}
       #qtspinner { margin: 0; }
       #title { font-size: 2em; font-weight: 300; font-style: normal; font-stretch: condensed; }
       #instruction { font-style: normal; }
@@ -46,6 +47,10 @@
     </style>
   </head>
   <body onload="init()">
+     <div id="topnav" class="topnav">
+       <a class="active" href="/">Qt Design Viewer</a>
+       <a id="versioninfo_header"></a>
+    </div>
     <figure style="overflow: visible;" id="qtspinner">
       <center style="line-height:150%">
         <img src="qtdesignstudioviewer-128.png" srcset="qtdesignstudioviewer-128.png 1x, qtdesignstudioviewer-256.png 2x, qtdesignstudioviewer-384.png 3x, qtdesignstudioviewer-512.png 4x, " width="128" height="128" style="display: block"/>
@@ -67,6 +72,7 @@
       <ul id="projectsmenulist">
       </ul>
     </div>
+
     <canvas id="qtcanvas" oncontextmenu="event.preventDefault()" contenteditable="true"></canvas>
     <div id="footer">
       <p>
@@ -77,13 +83,14 @@
         | Made with: <a href="https://doc.qt.io/qt-5/wasm.html">Qt for WebAssembly</a>
         | Powered by: <a href="https://webassembly.org/">WebAssembly</a> & <a href="https://emscripten.org/">emscripten</a>
       </p>
-      <p id="versioninfo"></p>
+      <p id="versioninfo_main"></p>
     </div>
 
     <script type='text/javascript'>
         var contentArray;
         var projectfileName;
         var reader;
+        var topnav = document.querySelector('#topnav');
         var uploadform = document.querySelector('#uploadform');
         var fileinput = document.querySelector('#fileinput');
         var dropzone = document.querySelector('#dropzone');
@@ -168,15 +175,14 @@
           request.responseType = "json";
           request.onload = function (oEvent) {
             var json = request.response;
-            console.log("JSON: ", json)
-            var versionElement = document.querySelector('#versioninfo');
             versionInfo = request.response;
             var version = json.version;
             var buildNumber = json.buildNumber;
             var versionText = "Version: " + version;
             if(buildNumber !== undefined)
               versionText += "." + buildNumber;
-            versionElement.innerHTML = versionText;
+            document.querySelector('#versioninfo_header').innerHTML = versionText;
+            document.querySelector('#versioninfo_main').innerHTML = versionText;
           }
           request.open("GET", "version.json", true);
           request.send(null);
@@ -205,6 +211,7 @@
         function loadProjector() {
           var spinner = document.querySelector('#qtspinner');
           var status = document.querySelector('#qtstatus')
+          var topnav = document.querySelector('#topnav')
 
           qtLoader = QtLoader({
             canvasElements : [canvas],
@@ -230,6 +237,7 @@
             showCanvas: function() {
                 spinner.style.display = 'none';
                 canvas.style.display = 'block';
+                topnav.style.display = 'block';
             },
           });
 
