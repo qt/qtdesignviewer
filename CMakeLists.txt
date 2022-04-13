@@ -28,7 +28,7 @@ qt_add_executable(${CMAKE_PROJECT_NAME}
 
 # This does not work on Qt 6.3 beta 1, should be fixed in beta 3
 # You need to modify Qt6Targets.cmake to change the memory parameter
-# set_property(TARGET ${CMAKE_PROJECT_NAME} PROPERTY QT_WASM_INITIAL_MEMORY "50MB")
+set_property(TARGET ${CMAKE_PROJECT_NAME} PROPERTY QT_WASM_INITIAL_MEMORY "50MB")
 
 target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE
     Qt${QT_VERSION_MAJOR}::Core
