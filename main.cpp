@@ -287,6 +287,9 @@ int main(int argc, char *argv[])
 #if QT_VERSION_MAJOR < 6
     QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
 #endif
+    QSurfaceFormat format = QSurfaceFormat::defaultFormat();
+    format.setVersion(3,0);
+    QSurfaceFormat::setDefaultFormat(format);
 
 #if defined(Q_OS_ANDROID)
     QApplication app(argc, argv);
