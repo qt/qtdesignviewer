@@ -102,14 +102,18 @@ void fetchProject(QByteArray *data, QString *fileName)
     });
 }
 
-void printError(const QString &error)
+void printWarning(const QString &error)
 {
     QString escaped = error;
     escaped.replace("'", "\'");
     escaped.replace("\n", "\\n");
-    emscripten_run_script("alert('" + escaped.toUtf8() + "');"
-                          "location.hash = '';"
-                          "location.reload();");
+    emscripten_run_script("alert('" + escaped.toUtf8() + "');");
+}
+
+void printError(const QString &error)
+{
+    printWarning(error);
+    emscripten_run_script("location.hash = ''; location.reload();");
 }
 
 void setScreenSize(const QSize &size)
@@ -221,10 +225,17 @@ void parseQmlprojectFile(const QString &fileName, QString *mainFile, QStringList
         *mainFile = basePath + mainFileMatch.captured(1);
         if (mainFile->startsWith(QLatin1String(":/")))
 #if QT_VERSION_MAJOR < 6
-            *mainFile = "qrc:" + mainFile->midRef(1);
+        *mainFile = "qrc:" + mainFile->midRef(1);
 #else
-            *mainFile = "qrc:" + mainFile->mid(1);
+        *mainFile = "qrc:" + mainFile->mid(1);
+
+        const QRegularExpression qt6ProjectRegExp("qt6Project:\\s*true");
+        const QRegularExpressionMatch qt6ProjectMatch = qt6ProjectRegExp.match(text);
+        if (!qt6ProjectMatch.hasMatch()) {
+            printWarning("This is not a Qt6 project.\nQt5 projects might work, but they are not officially supported.");
+        }
 #endif
+
         const QRegularExpression importPathsRegExp("importPaths:\\s*\\[\\s*(.*)\\s*\\]");
         const QRegularExpressionMatch importPathsMatch = importPathsRegExp.match(text);
         if (importPathsMatch.hasMatch()) {
