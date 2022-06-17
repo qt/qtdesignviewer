@@ -224,9 +224,7 @@ void parseQmlprojectFile(const QString &fileName, QString *mainFile, QStringList
 
         *mainFile = basePath + mainFileMatch.captured(1);
         if (mainFile->startsWith(QLatin1String(":/")))
-#if QT_VERSION_MAJOR < 6
-        *mainFile = "qrc:" + mainFile->midRef(1);
-#else
+
         *mainFile = "qrc:" + mainFile->mid(1);
 
         const QRegularExpression qt6ProjectRegExp("qt6Project:\\s*true");
@@ -234,7 +232,6 @@ void parseQmlprojectFile(const QString &fileName, QString *mainFile, QStringList
         if (!qt6ProjectMatch.hasMatch()) {
             printWarning("This is not a Qt6 project.\nQt5 projects might work, but they are not officially supported.");
         }
-#endif
 
         const QRegularExpression importPathsRegExp("importPaths:\\s*\\[\\s*(.*)\\s*\\]");
         const QRegularExpressionMatch importPathsMatch = importPathsRegExp.match(text);
@@ -244,11 +241,7 @@ void parseQmlprojectFile(const QString &fileName, QString *mainFile, QStringList
                 cleanedPath = basePath + cleanedPath.mid(1, cleanedPath.length() - 2);
                 if (QFileInfo::exists(cleanedPath)) {
                     if (cleanedPath.startsWith(QLatin1String(":/")))
-#if QT_VERSION_MAJOR < 6
-                        cleanedPath = "qrc:" + cleanedPath.midRef(1);
-#else
                         cleanedPath = "qrc:" + cleanedPath.mid(1);
-#endif
                     importPaths->append(cleanedPath);
                 }
             }
@@ -283,9 +276,6 @@ int main(int argc, char *argv[])
     if (argc < 2) {
         return showFatalMessageAndDie({QString("Qml project to show has not been defined.")});
     }
-#endif
-#if QT_VERSION_MAJOR < 6
-    QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
 #endif
     QSurfaceFormat format = QSurfaceFormat::defaultFormat();
     format.setVersion(3,0);
